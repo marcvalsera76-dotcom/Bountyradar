@@ -100,3 +100,9 @@ class TriageOut(BaseModel):
     is_duplicate: bool
     dedup_probability: float
     reason: str
+
+
+class ReportOut(BaseModel):
+    ready: bool
+    missing: list[str]
+    markdown: str

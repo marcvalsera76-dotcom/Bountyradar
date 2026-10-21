@@ -24,6 +24,7 @@ from app.api.schemas import (
     ProgramOut,
     ReconImportIn,
     ReconImportOut,
+    ReportOut,
     ScopeImportIn,
     ScopeImportOut,
     TriageOut,
@@ -32,6 +33,7 @@ from app.db.models import Asset, Program, VulnerabilityCandidate
 from app.db.session import get_session
 from app.recon.passive import PassiveReconService
 from app.services.inventory import AssetInventory
+from app.services.report import check_quality, generate_report
 from app.services.scope_import import import_scope
 from app.services.triage import FindingInput, FindingTriage
 
@@ -159,6 +161,17 @@ def list_findings(program_id: int, session: SessionDep) -> list[VulnerabilityCan
             .order_by(VulnerabilityCandidate.id)
         )
     )
+
+
+@app.get("/api/v1/findings/{finding_id}/report", response_model=ReportOut)
+def finding_report(finding_id: int, session: SessionDep) -> ReportOut:
+    candidate = session.get(VulnerabilityCandidate, finding_id)
+    if candidate is None:
+        raise HTTPException(status_code=404, detail="candidata no encontrada")
+    program = session.get(Program, candidate.program_id)
+    quality = check_quality(candidate)
+    markdown = generate_report(candidate, program.name if program else None)
+    return ReportOut(ready=quality.ready, missing=quality.missing, markdown=markdown)
 
 
 @app.get("/", response_class=HTMLResponse)
