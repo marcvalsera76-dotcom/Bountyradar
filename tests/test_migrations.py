@@ -15,6 +15,7 @@ from sqlalchemy import create_engine, inspect
 PROJECT_ROOT = Path(__file__).resolve().parent.parent
 EXPECTED_TABLES = {
     "program",
+    "scope_rule",
     "asset",
     "endpoint",
     "vulnerability_candidate",

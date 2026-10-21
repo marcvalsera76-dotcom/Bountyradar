@@ -98,6 +98,18 @@ class Program(Base):
     __table_args__ = (UniqueConstraint("platform", "external_program_id"),)
 
 
+class ScopeRule(Base):
+    __tablename__ = "scope_rule"
+
+    id: Mapped[int] = mapped_column(Integer, primary_key=True)
+    program_id: Mapped[int] = mapped_column(ForeignKey("program.id"), index=True)
+    kind: Mapped[str] = mapped_column(String(8))  # 'in' | 'out'
+    pattern: Mapped[str] = mapped_column(String(512))
+    created_at: Mapped[datetime] = mapped_column(DateTime(timezone=True), default=_utcnow)
+
+    __table_args__ = (UniqueConstraint("program_id", "kind", "pattern"),)
+
+
 class Asset(Base):
     __tablename__ = "asset"
 
