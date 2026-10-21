@@ -20,11 +20,14 @@ from app.api.schemas import (
     AssetOut,
     ProgramCreate,
     ProgramOut,
+    ReconImportIn,
+    ReconImportOut,
     ScopeImportIn,
     ScopeImportOut,
 )
 from app.db.models import Asset, Program
 from app.db.session import get_session
+from app.recon.passive import PassiveReconService
 from app.services.inventory import AssetInventory
 from app.services.scope_import import import_scope
 
@@ -94,6 +97,27 @@ def list_assets(program_id: int, session: SessionDep) -> list[Asset]:
         session.scalars(
             select(Asset).where(Asset.program_id == program_id).order_by(Asset.hostname)
         )
+    )
+
+
+@app.post(
+    "/api/v1/programs/{program_id}/recon/passive/import", response_model=ReconImportOut
+)
+def recon_passive_import(
+    program_id: int, payload: ReconImportIn, session: SessionDep
+) -> ReconImportOut:
+    program = _get_program(session, program_id)
+    service = PassiveReconService(session)
+    res = service.ingest_hosts(program, payload.hosts, source=payload.source)
+    return ReconImportOut(
+        source=res.source,
+        total_lines=res.total_lines,
+        new_assets=res.new_assets,
+        updated_assets=res.updated_assets,
+        in_scope=res.in_scope,
+        out_of_scope=res.out_of_scope,
+        invalid=res.invalid,
+        task_id=res.task_id,
     )
 
 

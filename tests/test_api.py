@@ -120,3 +120,20 @@ def test_dashboard_renders(client):
     assert r.status_code == 200
     assert "BountyRadar" in r.text
     assert "Globex" in r.text
+
+
+def test_recon_passive_import_endpoint(client):
+    p = _create_program(client)
+    client.post(
+        f"/api/v1/programs/{p['id']}/scope/import",
+        json={"in_scope": ["*.acme.com"], "out_of_scope": ["admin.acme.com"]},
+    )
+    r = client.post(
+        f"/api/v1/programs/{p['id']}/recon/passive/import",
+        json={"hosts": ["api.acme.com", "admin.acme.com", "evil.com"], "source": "subfinder"},
+    )
+    assert r.status_code == 200
+    body = r.json()
+    assert body["in_scope"] == ["api.acme.com"]
+    assert body["new_assets"] == 3
+    assert body["task_id"] is not None

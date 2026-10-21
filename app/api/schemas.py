@@ -52,3 +52,19 @@ class AssetOut(BaseModel):
     scope_reason: str | None
     source: str | None
     last_seen_at: datetime
+
+
+class ReconImportIn(BaseModel):
+    hosts: list[str] = Field(default_factory=list)
+    source: str = Field(default="import", max_length=128)
+
+
+class ReconImportOut(BaseModel):
+    source: str
+    total_lines: int
+    new_assets: int
+    updated_assets: int
+    in_scope: list[str]
+    out_of_scope: list[str]
+    invalid: list[tuple[str, str]]
+    task_id: int | None
