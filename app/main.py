@@ -18,18 +18,22 @@ from sqlalchemy.orm import Session
 from app.api.schemas import (
     AssetIn,
     AssetOut,
+    CandidateOut,
+    FindingIn,
     ProgramCreate,
     ProgramOut,
     ReconImportIn,
     ReconImportOut,
     ScopeImportIn,
     ScopeImportOut,
+    TriageOut,
 )
-from app.db.models import Asset, Program
+from app.db.models import Asset, Program, VulnerabilityCandidate
 from app.db.session import get_session
 from app.recon.passive import PassiveReconService
 from app.services.inventory import AssetInventory
 from app.services.scope_import import import_scope
+from app.services.triage import FindingInput, FindingTriage
 
 app = FastAPI(title="BountyRadar", version="0.1.0")
 
@@ -118,6 +122,42 @@ def recon_passive_import(
         out_of_scope=res.out_of_scope,
         invalid=res.invalid,
         task_id=res.task_id,
+    )
+
+
+@app.post("/api/v1/programs/{program_id}/findings", response_model=TriageOut)
+def submit_finding(program_id: int, payload: FindingIn, session: SessionDep) -> TriageOut:
+    program = _get_program(session, program_id)
+    triage = FindingTriage(session)
+    res = triage.triage(
+        program,
+        FindingInput(
+            host=payload.host,
+            vuln_type=payload.vuln_type,
+            title=payload.title,
+            path=payload.path,
+            evidence_pattern=payload.evidence_pattern,
+            severity=payload.severity,
+            poc_available=payload.poc_available,
+        ),
+    )
+    return TriageOut(
+        candidate=CandidateOut.model_validate(res.candidate),
+        is_duplicate=res.is_duplicate,
+        dedup_probability=res.dedup_probability,
+        reason=res.reason,
+    )
+
+
+@app.get("/api/v1/programs/{program_id}/findings", response_model=list[CandidateOut])
+def list_findings(program_id: int, session: SessionDep) -> list[VulnerabilityCandidate]:
+    _get_program(session, program_id)
+    return list(
+        session.scalars(
+            select(VulnerabilityCandidate)
+            .where(VulnerabilityCandidate.program_id == program_id)
+            .order_by(VulnerabilityCandidate.id)
+        )
     )
 
 

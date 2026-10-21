@@ -64,6 +64,17 @@ def test_full_round_trip(alembic_cfg):
     assert EXPECTED_TABLES.issubset(_tables(url))
 
 
+def test_candidate_triage_columns_present(alembic_cfg):
+    cfg, url = alembic_cfg
+    command.upgrade(cfg, "head")
+    engine = create_engine(url)
+    try:
+        cols = {c["name"] for c in inspect(engine).get_columns("vulnerability_candidate")}
+    finally:
+        engine.dispose()
+    assert {"dedup_key", "location_key", "triage_reason", "seen_count"} <= cols
+
+
 def test_no_real_db_touched():
     # El guardarraíl prohíbe aplicar la migración a una BD real sin confirmación.
     # Confirmamos que no existe un bountyradar.db persistido tras los tests.

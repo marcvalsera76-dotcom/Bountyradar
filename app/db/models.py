@@ -162,6 +162,9 @@ class VulnerabilityCandidate(Base):
     endpoint_id: Mapped[int | None] = mapped_column(ForeignKey("endpoint.id"), nullable=True)
     title: Mapped[str] = mapped_column(String(512))
     description: Mapped[str | None] = mapped_column(Text, nullable=True)
+    vuln_type: Mapped[str | None] = mapped_column(String(64), nullable=True)
+    dedup_key: Mapped[str | None] = mapped_column(String(64), index=True, nullable=True)
+    location_key: Mapped[str | None] = mapped_column(String(64), index=True, nullable=True)
     cwe_id: Mapped[str | None] = mapped_column(String(32), nullable=True)
     severity: Mapped[str | None] = mapped_column(String(32), nullable=True)
     confidence: Mapped[int] = mapped_column(Integer, default=0)
@@ -172,12 +175,16 @@ class VulnerabilityCandidate(Base):
     triage_status: Mapped[TriageStatus] = mapped_column(
         Enum(TriageStatus, native_enum=False), default=TriageStatus.NEW
     )
+    triage_reason: Mapped[str | None] = mapped_column(Text, nullable=True)
     reproduction_steps: Mapped[str | None] = mapped_column(Text, nullable=True)
     impact: Mapped[str | None] = mapped_column(Text, nullable=True)
+    seen_count: Mapped[int] = mapped_column(Integer, default=1)
     created_at: Mapped[datetime] = mapped_column(DateTime(timezone=True), default=_utcnow)
     updated_at: Mapped[datetime] = mapped_column(
         DateTime(timezone=True), default=_utcnow, onupdate=_utcnow
     )
+
+    __table_args__ = (UniqueConstraint("program_id", "dedup_key"),)
 
 
 class Task(Base):
