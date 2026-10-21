@@ -115,6 +115,11 @@ class PassiveReconService:
         result.task_id = task.id
         return result
 
+    def ingest_from_source(self, program, source, domain: str) -> ReconIngestResult:
+        """Ingesta hosts desde una fuente pasiva (crt.sh, wayback)."""
+        hosts = source.hosts(domain)
+        return self.ingest_hosts(program, hosts, source=source.name)
+
     def _asset_exists(self, program_id: int, hostname: str) -> bool:
         from sqlalchemy import select
 
