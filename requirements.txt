@@ -1,0 +1,5 @@
+# Núcleo (Hito 1) sin dependencias externas: solo stdlib.
+# Herramientas de desarrollo:
+pytest>=8.0
+ruff>=0.6
+mypy>=1.11
