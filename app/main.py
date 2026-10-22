@@ -20,6 +20,7 @@ from app.api.schemas import (
     AssetOut,
     CandidateOut,
     FindingIn,
+    FocusOut,
     ProgramCreate,
     ProgramOut,
     ReconImportIn,
@@ -32,6 +33,7 @@ from app.api.schemas import (
 from app.db.models import Asset, Program, VulnerabilityCandidate
 from app.db.session import get_session
 from app.recon.passive import PassiveReconService
+from app.services.focus import where_to_look_today
 from app.services.inventory import AssetInventory
 from app.services.report import check_quality, generate_report
 from app.services.scope_import import import_scope
@@ -172,6 +174,13 @@ def finding_report(finding_id: int, session: SessionDep) -> ReportOut:
     quality = check_quality(candidate)
     markdown = generate_report(candidate, program.name if program else None)
     return ReportOut(ready=quality.ready, missing=quality.missing, markdown=markdown)
+
+
+@app.get("/api/v1/programs/{program_id}/focus", response_model=FocusOut)
+def program_focus(program_id: int, session: SessionDep, hours: int = 24) -> FocusOut:
+    program = _get_program(session, program_id)
+    report = where_to_look_today(session, program, hours=hours)
+    return FocusOut.model_validate(report, from_attributes=True)
 
 
 @app.get("/", response_class=HTMLResponse)

@@ -106,3 +106,26 @@ class ReportOut(BaseModel):
     ready: bool
     missing: list[str]
     markdown: str
+
+
+class FocusAssetOut(BaseModel):
+    hostname: str
+    discovered_at: datetime
+    source: str | None
+
+
+class FocusFindingOut(BaseModel):
+    id: int
+    title: str
+    vuln_type: str | None
+    exploitability: str
+    confidence: int
+    poc_available: bool
+
+
+class FocusOut(BaseModel):
+    program: str
+    new_assets: list[FocusAssetOut]
+    open_findings: list[FocusFindingOut]
+    total_in_scope: int
+    total_open_findings: int
