@@ -206,6 +206,27 @@ class Task(Base):
     created_at: Mapped[datetime] = mapped_column(DateTime(timezone=True), default=_utcnow)
 
 
+class Evidence(Base):
+    __tablename__ = "evidence"
+
+    id: Mapped[int] = mapped_column(Integer, primary_key=True)
+    finding_id: Mapped[int] = mapped_column(
+        ForeignKey("vulnerability_candidate.id"), index=True
+    )
+    request_method: Mapped[str | None] = mapped_column(String(16), nullable=True)
+    request_url: Mapped[str | None] = mapped_column(String(2048), nullable=True)
+    request_headers_redacted: Mapped[str | None] = mapped_column(Text, nullable=True)
+    response_status: Mapped[int | None] = mapped_column(Integer, nullable=True)
+    response_body_sha256: Mapped[str | None] = mapped_column(String(64), nullable=True)
+    tool_name: Mapped[str | None] = mapped_column(String(64), nullable=True)
+    tool_version: Mapped[str | None] = mapped_column(String(32), nullable=True)
+    observed_at_utc: Mapped[datetime] = mapped_column(DateTime(timezone=True), default=_utcnow)
+    integrity_hash: Mapped[str] = mapped_column(String(64))
+    retention_until: Mapped[datetime | None] = mapped_column(
+        DateTime(timezone=True), nullable=True
+    )
+
+
 class AuditEvent(Base):
     __tablename__ = "audit_event"
 

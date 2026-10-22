@@ -21,6 +21,7 @@ EXPECTED_TABLES = {
     "vulnerability_candidate",
     "task",
     "audit_event",
+    "evidence",
 }
 
 
